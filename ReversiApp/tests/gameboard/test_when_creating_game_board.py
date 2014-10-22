@@ -1,8 +1,7 @@
-from ReversiApp.gameboard.game_board import GameBoard
-
-__author__ = 'Michał'
+from functools import reduce
 
 from django.test import TestCase
+from ReversiApp.gameboard.game_board import GameBoard
 
 
 class WhenCreatingGameBoard(TestCase):
@@ -11,3 +10,8 @@ class WhenCreatingGameBoard(TestCase):
 
     def test_should_be_able_to_create_empty_board(self):
         game_board = GameBoard()
+
+    def test_newly_created_board_should_have_64_empty_fields(self):
+        game_board = GameBoard()
+
+        self.assertEquals(64, game_board.count_empty_fields())
