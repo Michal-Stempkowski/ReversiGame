@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from ReversiApp.game_board import GameBoard, NoPiece, BlackPiece, WhitePiece
+from ReversiApp.core.game_board import GameBoard, NoPiece, BlackPiece, WhitePiece
 
 
 class WhenCreatingGameBoard(TestCase):
