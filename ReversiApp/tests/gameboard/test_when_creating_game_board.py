@@ -1,4 +1,4 @@
-from django.test import TestCase
+from unittest import TestCase
 
 from ReversiApp.gameboard.game_board import GameBoard
 
