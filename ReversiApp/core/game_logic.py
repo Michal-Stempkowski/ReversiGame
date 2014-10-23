@@ -6,6 +6,10 @@ class Game(object):
         return self.game_state
 
 
+class UnknownGameStateException(Exception):
+    pass
+
+
 class GameState(object):
     def __repr__(self):
         return self.__class__.__name__
@@ -24,10 +28,13 @@ class GameStateNew(GameState):
     def quit(self, game_logic):
         game_logic.game_state = GameStateDead()
 
+    def initialize(self, game_logic):
+        game_logic.game_state = GameStateInitialized()
+
 
 class GameStateDead(GameState):
     pass
 
 
-class UnknownGameStateException(Exception):
+class GameStateInitialized(GameState):
     pass
