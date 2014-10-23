@@ -16,6 +16,9 @@ class GameState(object):
     def __getattr__(self, item, *args):
         raise UnknownGameStateException
 
+    def is_transition_possible(self, transition):
+        return transition in self.__dir__()
+
 
 class GameStateNew(GameState):
     def quit(self, game_logic):

@@ -26,3 +26,7 @@ class WhenInNewState(TestCase):
             self.fail("UnknownGameStateException thrown for known method!")
 
         self.assertEquals(GameStateDead(), self.game.get_current_game_state())
+
+    def test_should_be_able_to_check_if_transition_is_available(self):
+        self.assertFalse(self.game.game_state.is_transition_possible('unknown'))
+        self.assertTrue(self.game.game_state.is_transition_possible('quit'))
