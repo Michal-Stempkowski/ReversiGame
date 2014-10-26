@@ -1,3 +1,4 @@
+from copy import deepcopy
 from functools import reduce
 from ReversiApp.fluent_flow.functional import generator_len
 
@@ -70,7 +71,7 @@ class GameBoard(object):
 class MovementPrognosis(object):
     def __init__(self, game_board):
         self.converted_pieces = 0
-        self.game_board = game_board
+        self.game_board = deepcopy(game_board)
 
     @staticmethod
     def all_possible_directions():

@@ -57,8 +57,8 @@ class WhenCreatingGameBoard(TestCase):
 
 class WhenMakingMovementPrognosis(TestCase):
     def setUp(self):
-        # self.game_board = GameBoard()
-        self.movement_prognosis = MovementPrognosis(GameBoard())
+        self.game_board = GameBoard()
+        self.movement_prognosis = MovementPrognosis(self.game_board)
 
     def insert_many_pieces(self, pieces):
         for (y, x, color) in pieces:
@@ -138,11 +138,21 @@ class WhenMakingMovementPrognosis(TestCase):
         self.movement_prognosis.make_prognosis(2, 2, BlackPiece())
         self.assertTrue(self.movement_prognosis.will_be_valid())
 
-    def test_should_not_modify_current_game_board(self):
-        pass
+    def test_should_update_prognosis_map_but_not_current_map(self):
+        self.insert_many_pieces([(2, 3, WhitePiece()), (2, 4, BlackPiece())])
+        self.movement_prognosis.make_prognosis(2, 2, BlackPiece())
 
-    def test_should_update_prognosis_map(self):
-        pass
+        self.assertTrue(self.movement_prognosis.game_board.get_piece_from_field(2, 3) == BlackPiece())
+        self.assertTrue(self.movement_prognosis.game_board.get_piece_from_field(2, 2) == BlackPiece())
+
+        self.assertTrue(self.game_board.get_piece_from_field(2, 3) == NoPiece())
+
+    def test_should_be_able_to_tell_how_many_pieces_will_be_converted(self):
+        self.insert_many_pieces([(2, 3, WhitePiece()), (2, 4, WhitePiece()), (2, 5, BlackPiece()),
+                                 (3, 2, WhitePiece()), (4, 2, BlackPiece())])
+        self.movement_prognosis.make_prognosis(2, 2, BlackPiece())
+
+        self.assertEquals(3, self.movement_prognosis.converted_pieces)
 
 
 class WhenPlayingGame(TestCase):
