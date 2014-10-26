@@ -3,6 +3,10 @@ from unittest import TestCase
 from ReversiApp.core.game_board import GameBoard, NoPiece, BlackPiece, WhitePiece, MovementPrognosis, OutOfBoardPiece
 
 
+def list_of_coordinates(start, direction, count):
+    return [(start[0] + direction[0] * i, start[1] + direction[1] * i) for i in range(count)]
+
+
 class WhenCreatingGameBoard(TestCase):
     def setUp(self):
         self.game_board = GameBoard()
@@ -56,13 +60,16 @@ class WhenMakingMovementPrognosis(TestCase):
         self.game_board = GameBoard()
         self.movement_prognosis = MovementPrognosis(self.game_board)
 
-    def assert_neighbourhood_detected(self, expected, existing_enemies, row_of_new_piece, column_of_new_piece):
-        for (y, x) in existing_enemies:
-            self.game_board.insert_piece(y, x, WhitePiece())
+    def insert_many_pieces(self, pieces):
+        for (y, x, color) in pieces:
+            self.game_board.insert_piece(y, x, color)
 
-        list_of_adjacent_enemies = self.movement_prognosis.phase_zero_validation_of_movement(row_of_new_piece,
-                                                                                             column_of_new_piece,
-                                                                                             BlackPiece())
+    def assert_neighbourhood_detected(self, expected, existing_enemies, row_of_new_piece, column_of_new_piece):
+        self.insert_many_pieces(existing_enemies)
+
+        list_of_adjacent_enemies = self.movement_prognosis.find_all_adjacent_enemies(row_of_new_piece,
+                                                                                     column_of_new_piece,
+                                                                                     BlackPiece())
 
         expected_with_directions = map(lambda neighbour:
                                        (neighbour[0], neighbour[1], (neighbour[0] - row_of_new_piece,
@@ -71,15 +78,57 @@ class WhenMakingMovementPrognosis(TestCase):
         self.assertEquals(set(expected_with_directions), set(list_of_adjacent_enemies))
         self.game_board.reset_board()
 
-    def test_phase_zero_prognosis_should_return_list_containing_enemy_neighbours(self):
+    def test_should_be_able_to_find_all_adjacent_enemies(self):
         self.assert_neighbourhood_detected([], [], 2, 2)
-        self.assert_neighbourhood_detected([], [(1, 1)], 2, 2)
-        self.assert_neighbourhood_detected([(2, 1)], [(2, 1)], 2, 2)
-        self.assert_neighbourhood_detected([(2, 3)], [(2, 3)], 2, 2)
-        self.assert_neighbourhood_detected([(1, 2)], [(1, 2)], 2, 2)
-        self.assert_neighbourhood_detected([(3, 2)], [(3, 2)], 2, 2)
-        self.assert_neighbourhood_detected([(2, 1), (2, 3), (1, 2), (3, 2)],
-                                           [(y, x) for x in range(1, 4) for y in range(1, 4) if x != 2 or y != 2], 2, 2)
+        self.assert_neighbourhood_detected([(1, 1)], [(1, 1, WhitePiece())], 2, 2)
+        self.assert_neighbourhood_detected([(2, 1)], [(2, 1, WhitePiece())], 2, 2)
+        self.assert_neighbourhood_detected([(2, 3)], [(2, 3, WhitePiece())], 2, 2)
+        self.assert_neighbourhood_detected([(1, 2)], [(1, 2, WhitePiece())], 2, 2)
+        self.assert_neighbourhood_detected([(3, 2)], [(3, 2, WhitePiece())], 2, 2)
+
+        all_surrounding = [(y, x, WhitePiece()) for x in range(1, 4) for y in range(1, 4) if x != 2 or y != 2]
+        self.assert_neighbourhood_detected(all_surrounding, all_surrounding, 2, 2)
+
+    def assert_conversions_detected(self, expected_result, neighbour, white_pieces, black_pieces):
+        # noinspection PyTypeChecker
+        to_be_inserted = [(y, x, WhitePiece()) for (y, x) in white_pieces] + \
+                         [(y, x, BlackPiece()) for (y, x) in black_pieces]
+        self.insert_many_pieces(to_be_inserted)
+        self.assertEquals(expected_result, self.movement_prognosis.try_expanding_conversion(neighbour, BlackPiece()))
+
+    def test_should_find_all_pieces_to_be_converted_in_given_direction(self):
+        self.assert_conversions_detected([], (2, 3, (0, 1)), [(2, 3)], [])
+        self.assert_conversions_detected([], (2, 7, (0, 1)), [(2, 7)], [])
+        self.assert_conversions_detected([], (2, 0, (0, -1)), [(2, 0)], [(2, 7)])
+        self.assert_conversions_detected([(2, 3)], (2, 3, (0, 1)), [(2, 3)], [(2, 4)])
+
+        self.assert_conversions_detected(list_of_coordinates((2, 3), (0, 1), 2), (2, 3, (0, 1)),
+                                         list_of_coordinates((2, 3), (0, 1), 2), [(2, 5)])
+
+        self.assert_conversions_detected(list_of_coordinates((3, 2), (1, 0), 2), (3, 2, (1, 0)),
+                                         list_of_coordinates((3, 2), (1, 0), 2), [(5, 2)])
+
+    def assert_find_all_pieces_returns(self, expected, piece_to_be_inserted, pieces_before_movement):
+        self.game_board.reset_board()
+
+        self.insert_many_pieces(pieces_before_movement)
+        list_of_adjacent_enemies = self.movement_prognosis.find_all_adjacent_enemies(*piece_to_be_inserted)
+        self.assertEquals(expected, set(self.movement_prognosis.find_all_pieces_to_be_converted(
+            list_of_adjacent_enemies, piece_to_be_inserted[2])))
+
+        self.game_board.reset_board()
+
+    def test_should_find_all_pieces_to_be_converted_in_all_directions(self):
+        self.assert_find_all_pieces_returns(set(), (2, 2, BlackPiece()), [])
+        self.assert_find_all_pieces_returns({(2, 3)}, (2, 2, BlackPiece()),
+                                            [(2, 3, WhitePiece()), (2, 4, BlackPiece())])
+        self.assert_find_all_pieces_returns({(2, 3), (3, 2)}, (2, 2, BlackPiece()),
+                                            [(2, 3, WhitePiece()), (2, 4, BlackPiece()),
+                                             (3, 2, WhitePiece()), (4, 2, BlackPiece())])
+
+        self.assert_find_all_pieces_returns({(2, 3)}, (2, 2, BlackPiece()),
+                                            [(2, 3, WhitePiece()), (2, 4, BlackPiece()),
+                                             (3, 2, WhitePiece())])
 
 
 class WhenPlayingGame(TestCase):

@@ -1,3 +1,4 @@
+from functools import reduce
 from ReversiApp.fluent_flow.functional import generator_len
 
 
@@ -62,7 +63,8 @@ class GameBoard(object):
     def get_piece_from_field(self, row, col):
         if row < 0 or col < 0 or row >= self.board_size() or col >= self.board_size():
             return OutOfBoardPiece()
-        return self.fields[row][col]
+        else:
+            return self.fields[row][col]
 
 
 class MovementPrognosis(object):
@@ -70,18 +72,48 @@ class MovementPrognosis(object):
         self.converted_pieces = 0
         self.game_board = game_board
 
+    @staticmethod
+    def all_possible_directions():
+        return [(y, x) for y in [-1, 0, 1] for x in [-1, 0, 1]]
+
     def will_be_valid(self):
         return False
 
-    def phase_zero_validation_of_movement(self, row, column, player_color):
-        enemy_color = player_color.get_enemy_color()
+    def is_enemy(self, player_color, piece):
+        return self.game_board.get_piece_from_field(piece[0], piece[1]) == player_color.get_enemy_color()
 
+    def is_friend(self, player_color, piece):
+        return self.game_board.get_piece_from_field(piece[0], piece[1]) == player_color
+
+    def find_all_adjacent_enemies(self, row, column, player_color):
         adjacent_enemies = []
 
-        neighbour_coordinates = [(row + y, column + x, (y, x))
-                                 for x in [-1, 0, 1] for y in [-1, 0, 1] if x != y and x != -y]
+        neighbour_coordinates = [(row + y, column + x, (y, x)) for (y, x) in self.all_possible_directions()]
+
         for (y, x, direction) in neighbour_coordinates:
-            if self.game_board.get_piece_from_field(y, x) == enemy_color:
+            if self.is_enemy(player_color, (y, x)):
                 adjacent_enemies.append((y, x, direction))
         return adjacent_enemies
 
+    def try_expanding_conversion(self, neighbour, player_color):
+        to_be_converted = []
+
+        direction = neighbour[2]
+        piece = (neighbour[0], neighbour[1])
+
+        next_field = piece
+        while True:
+            if self.is_enemy(player_color, next_field):
+                to_be_converted.append(next_field)
+            elif self.is_friend(player_color, next_field):
+                return to_be_converted
+            else:
+                return []
+
+            next_field = (next_field[0] + direction[0], next_field[1] + direction[1])
+
+    def find_all_pieces_to_be_converted(self, list_of_adjacent_enemies, player_color):
+        return reduce(lambda found, neighbour:
+                      found + self.try_expanding_conversion(neighbour, player_color),
+                      list_of_adjacent_enemies,
+                      [])
