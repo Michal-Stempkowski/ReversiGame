@@ -77,7 +77,7 @@ class MovementPrognosis(object):
         return [(y, x) for y in [-1, 0, 1] for x in [-1, 0, 1]]
 
     def will_be_valid(self):
-        return False
+        return self.converted_pieces > 0
 
     def is_enemy(self, player_color, piece):
         return self.game_board.get_piece_from_field(piece[0], piece[1]) == player_color.get_enemy_color()
@@ -117,3 +117,12 @@ class MovementPrognosis(object):
                       found + self.try_expanding_conversion(neighbour, player_color),
                       list_of_adjacent_enemies,
                       [])
+
+    def make_prognosis(self, row, column, player_color):
+        adjacent_enemies = self.find_all_adjacent_enemies(row, column, player_color)
+        pieces_to_be_converted = self.find_all_pieces_to_be_converted(adjacent_enemies, player_color)
+        for (y, x) in pieces_to_be_converted:
+            self.game_board.insert_piece(y, x, player_color)
+
+        self.converted_pieces = len(pieces_to_be_converted)
+        self.game_board.insert_piece(row, column, player_color)
