@@ -153,22 +153,3 @@ class WhenMakingMovementPrognosis(TestCase):
         self.movement_prognosis.make_prognosis(2, 2, BlackPiece())
 
         self.assertEquals(3, self.movement_prognosis.converted_pieces)
-
-
-class WhenPlayingGame(TestCase):
-    def setUp(self):
-        self.game_board = GameBoard()
-
-    def test_when_placing_black_piece_on_empty_board__should_return_invalid_movement_prognosis(self):
-        movement_prognosis = self.game_board.offer_piece(2, 3, BlackPiece())
-
-        self.assertFalse(movement_prognosis.will_be_valid())
-        self.assertEquals(0, movement_prognosis.converted_pieces)
-
-    def when_placing_black_piece_next_to_white_and_black__should_return_valid_movement_prognosis(self):
-        self.game_board.insert_piece(2, 2, WhitePiece())
-        self.game_board.insert_piece(2, 3, BlackPiece())
-        movement_prognosis = self.game_board.offer_piece(2, 1, BlackPiece())
-
-        self.assertEquals(1, movement_prognosis.converted_pieces)
-        self.assertTrue(movement_prognosis.will_be_valid())
