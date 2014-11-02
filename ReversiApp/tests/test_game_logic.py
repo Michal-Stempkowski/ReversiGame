@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from ReversiApp.core.game_logic import Game, GameStateNew, GameStateDead, UnknownGameStateException, \
-    GameStateInitialized
+    GameStateInitialized, GameStateBlackTurn
 
 
 class WhenCreatingGame(TestCase):
@@ -10,6 +10,9 @@ class WhenCreatingGame(TestCase):
 
     def test_game_should_be_in_new_state(self):
         self.assertEquals(GameStateNew(), self.game_logic.get_current_game_state())
+
+    def test_board_game_should_be_none(self):
+        self.assertEquals(None, self.game_logic.game_board)
 
 
 class WhenInNewState(TestCase):
@@ -41,3 +44,11 @@ class WhenInInitializedState(TestCase):
     def setUp(self):
         self.game_logic = Game()
         self.game_logic.game_state.initialize(self.game_logic)
+
+    def test_game_board_should_be_ready_to_play(self):
+        self.assertNotEquals(None, self.game_logic.game_board)
+        self.assertTrue(self.game_logic.game_board.is_ready_for_new_game())
+
+    def test_should_move_to_black_turn_state_after_start_game_call(self):
+        self.game_logic.game_state.start_game(self.game_logic)
+        self.assertEquals(GameStateBlackTurn(), self.game_logic.get_current_game_state())

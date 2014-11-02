@@ -41,6 +41,13 @@ class GameBoard(object):
     def reset_board(self):
         self.fields = [[NoPiece() for _ in range(self.board_size())] for _ in range(self.board_size())]
 
+    def is_ready_for_new_game(self):
+        return self.get_piece_from_field(3, 3) == WhitePiece() and \
+                self.get_piece_from_field(3, 4) == BlackPiece() and \
+                self.get_piece_from_field(4, 4) == WhitePiece() and \
+                self.get_piece_from_field(4, 3) == BlackPiece() and \
+                self.count_empty_fields() == self.board_size() * self.board_size() - 4
+
     @staticmethod
     def count_fields_in_row(field_type, row):
         return generator_len(filter(lambda field: field == field_type, row))
