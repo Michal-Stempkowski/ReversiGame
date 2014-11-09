@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from ReversiApp.core.game_board import GameBoard
 
 
@@ -12,9 +11,6 @@ class Game(object):
 
     def perform_action(self, action):
         action(self)
-        # action_result = action(self)
-        # if action_result.requires_game_state_change():
-        #     self.game_state = action_result.get_game_state_change()
 
 
 class UnreachableGameStateException(Exception):

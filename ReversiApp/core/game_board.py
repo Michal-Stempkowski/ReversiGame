@@ -43,10 +43,10 @@ class GameBoard(object):
 
     def is_ready_for_new_game(self):
         return self.get_piece_from_field(3, 3) == WhitePiece() and \
-                self.get_piece_from_field(3, 4) == BlackPiece() and \
-                self.get_piece_from_field(4, 4) == WhitePiece() and \
-                self.get_piece_from_field(4, 3) == BlackPiece() and \
-                self.count_empty_fields() == self.board_size() * self.board_size() - 4
+               self.get_piece_from_field(3, 4) == BlackPiece() and \
+               self.get_piece_from_field(4, 4) == WhitePiece() and \
+               self.get_piece_from_field(4, 3) == BlackPiece() and \
+               self.count_empty_fields() == self.board_size() * self.board_size() - 4
 
     @staticmethod
     def count_fields_in_row(field_type, row):
@@ -124,7 +124,7 @@ class MovementPrognosis(object):
         return reduce(lambda found, neighbour:
                       found + self.try_expanding_conversion(neighbour, player_color),
                       list_of_adjacent_enemies,
-                      [])
+            [])
 
     def make_prognosis(self, row, column, player_color):
         adjacent_enemies = self.find_all_adjacent_enemies(row, column, player_color)

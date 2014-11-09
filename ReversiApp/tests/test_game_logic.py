@@ -1,4 +1,5 @@
 from unittest import TestCase
+from ReversiApp.core.game_board import WhitePiece, MovementPrognosis
 
 from ReversiApp.core.game_logic import *
 
@@ -34,6 +35,9 @@ class WhenInNewState(TestCase):
         self.game_logic.perform_action(InitializeAction())
         self.assertEquals(GameStateInitialized(), self.game_logic.get_current_game_state())
 
+    def test_state_repr_should_be_valid(self):
+        self.assertEquals('GameStateNew', self.game_logic.game_state.__repr__())
+
 
 class WhenInInitializedState(TestCase):
     def setUp(self):
@@ -46,4 +50,49 @@ class WhenInInitializedState(TestCase):
 
     def test_should_move_to_black_turn_state_after_start_game_call(self):
         self.game_logic.perform_action(BlackTurnAction())
+        self.assertEquals(GameStateBlackTurn(), self.game_logic.get_current_game_state())
+
+
+class InvalidMovementPrognosisMock(object):
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def will_be_valid(*args):
+        return False
+
+
+class GameBoardWithNoValidMovementMock():
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def offer_piece(*args):
+        return InvalidMovementPrognosisMock()
+
+
+class GameStateWhiteTurn(GameState):
+    def __init__(self):
+        super().__init__([])
+
+
+class MakeMoveAction(Action):
+    def __init__(self, player_color, row, column):
+        self.player_color = player_color
+        self.row = row
+        self.column = column
+
+    def __call__(self, game_logic):
+        prognosis = game_logic.game_board.offer_piece(self.row, self.column, self.player_color)
+
+        if prognosis.will_be_valid():
+            self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
+
+
+class WhenInBlackTurnState(TestCase):
+    def setUp(self):
+        self.game_logic = Game()
+        self.game_logic.perform_action(InitializeAction())
+        self.game_logic.perform_action(BlackTurnAction())
+
+    def test_should_not_be_able_to_make_white_move(self):
+        self.game_logic.game_board = GameBoardWithNoValidMovementMock()
+
+        self.game_logic.perform_action(MakeMoveAction(WhitePiece(), 0, 0))
         self.assertEquals(GameStateBlackTurn(), self.game_logic.get_current_game_state())
