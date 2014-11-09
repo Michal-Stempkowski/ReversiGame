@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from ReversiApp.core.game_board import GameBoard, NoPiece, BlackPiece, WhitePiece, MovementPrognosis, OutOfBoardPiece
+from ReversiApp.core.game_board import *
 
 
 def list_of_coordinates(start, direction, count):

@@ -1,7 +1,6 @@
 from unittest import TestCase
 
-from ReversiApp.core.game_logic import Game, GameStateNew, GameStateDead, UnknownGameStateException, \
-    GameStateInitialized, GameStateBlackTurn
+from ReversiApp.core.game_logic import *
 
 
 class WhenCreatingGame(TestCase):
