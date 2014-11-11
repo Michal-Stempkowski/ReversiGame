@@ -60,23 +60,54 @@ class WhenInBlackTurnState(TestCase):
         self.game_logic.perform_action(InitializeAction())
         self.game_logic.perform_action(BlackTurnAction())
 
+    def assert_movement_prognosis_result(self, game_board, action, is_valid):
+        self.game_logic.game_board = game_board
+        self.assertFalse(action.result)
+        self.game_logic.perform_action(action)
+        self.assertTrue(action.result)
+        self.assertEquals(is_valid, action.result.value.will_be_valid())
+
+    def test_should_be_able_to_make_movement_prognosis(self):
+        self.assert_movement_prognosis_result(
+            GameBoardWithNoValidMovementMock(),
+            MakeBlackMovementPrognosisAction(0, 0),
+            False)
+        self.assert_movement_prognosis_result(
+            GameBoardWithValidMovementMock(),
+            MakeBlackMovementPrognosisAction(0, 0),
+            True)
+        self.assert_movement_prognosis_result(
+            GameBoardWithNoValidMovementMock(),
+            MakeWhiteMovementPrognosisAction(0, 0),
+            False)
+        self.assert_movement_prognosis_result(
+            GameBoardWithValidMovementMock(),
+            MakeWhiteMovementPrognosisAction(0, 0),
+            True)
+
     def test_should_not_be_able_to_make_white_move(self):
-        self.game_logic.game_board = GameBoardWithNoValidMovementMock()
-
-        with self.assertRaises(UnreachableGameStateException):
-            self.game_logic.perform_action(MakeWhiteMoveAction(3, 5))
-
-    def test_should_not_be_able_to_make_invalid_move(self):
-        self.game_logic.game_board = GameBoardWithInsertUsageCounterMock(GameBoardWithNoValidMovementMock())
-
-        self.game_logic.perform_action(MakeBlackMoveAction(0, 0))
-        self.assertEquals(0, self.game_logic.game_board.insert_usage_counter)
-        self.assertEquals(GameStateBlackTurn(), self.game_logic.get_current_game_state())
-
-    def test_should_be_able_to_make_valid_move(self):
         self.game_logic.game_board = GameBoardWithValidMovementMock()
 
+        action = MakeWhiteMoveAction(ValidMovementPrognosisMock(self.game_logic.game_board))
+
+        with self.assertRaises(UnreachableGameStateException):
+            self.game_logic.perform_action(action)
+
+    def assert_movement_result(self, game_board, game_board_changed_assertion, movement_made_assertion,
+                               state_after_action):
+        self.game_logic.game_board = game_board
         self.assertIsNot(self.game_logic.game_board, self.game_logic.game_board.movement_prognosis_board)
-        self.game_logic.perform_action(MakeBlackMoveAction(0, 0))
-        self.assertIs(self.game_logic.game_board, self.game_logic.game_board.movement_prognosis_board)
-        self.assertEquals(GameStateWhiteTurn(), self.game_logic.get_current_game_state())
+        action = MakeBlackMoveAction(self.game_logic.game_board.offer_piece())
+        self.game_logic.perform_action(action)
+        game_board_changed_assertion(self.game_logic.game_board, self.game_logic.game_board.movement_prognosis_board)
+        self.assertEquals(state_after_action, self.game_logic.get_current_game_state())
+        self.assertTrue(action.result)
+        self.assertNotEqual(None, action.result.value)
+        movement_made_assertion(action.result.value)
+
+    def test_should_be_able_to_make_only_valid_movement(self):
+        self.assert_movement_result(GameBoardWithNoValidMovementMock(), self.assertIsNot, self.assertFalse,
+                                    GameStateBlackTurn())
+
+        self.assert_movement_result(GameBoardWithValidMovementMock(), self.assertIs, self.assertTrue,
+                                    GameStateWhiteTurn())

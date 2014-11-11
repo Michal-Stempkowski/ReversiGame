@@ -1,4 +1,4 @@
-from ReversiApp.core.game_board import GameBoard
+from ReversiApp.core.game_board import GameBoard, BlackPiece, WhitePiece
 
 
 class Game(object):
@@ -60,7 +60,28 @@ class GameStateWhiteTurn(GameState):
         super().__init__([])
 
 
+class FutureResult(object):
+    def __init__(self):
+        self.exists = False
+        self._value = None
+
+    def __bool__(self):
+        return self.exists
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, new_value):
+        self._value = new_value
+        self.exists = True
+
+
 class Action(object):
+    def __init__(self):
+        self.result = FutureResult()
+
     @staticmethod
     def raise_if_state_unreachable(game_logic, state):
         if not game_logic.game_state.is_state_reachable(state):
@@ -87,23 +108,46 @@ class InitializeAction(Action):
         game_logic.game_state = GameStateInitialized()
 
 
-class MakeWhiteMoveAction(Action):
+class MakeWhiteMovementPrognosisAction(Action):
     def __init__(self, row, column):
+        super().__init__()
         self.row = row
         self.column = column
+
+    def __call__(self, game_logic):
+        # self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
+        self.result.value = game_logic.game_board.offer_piece(self.row, self.column, WhitePiece())
+
+
+class MakeBlackMovementPrognosisAction(Action):
+    def __init__(self, row, column):
+        super().__init__()
+        self.row = row
+        self.column = column
+
+    def __call__(self, game_logic):
+        # self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
+        self.result.value = game_logic.game_board.offer_piece(self.row, self.column, BlackPiece())
+
+
+class MakeWhiteMoveAction(Action):
+    def __init__(self, movement_prognosis):
+        super().__init__()
+        self.movement_prognosis = movement_prognosis
 
     def __call__(self, game_logic):
         self.raise_if_state_unreachable(game_logic, GameStateBlackTurn())
 
 
 class MakeBlackMoveAction(Action):
-    def __init__(self, row, column):
-        self.row = row
-        self.column = column
+    def __init__(self, movement_prognosis):
+        super().__init__()
+        self.movement_prognosis = movement_prognosis
 
     def __call__(self, game_logic):
         self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
-        prognosis = game_logic.game_board.offer_piece()
-        if prognosis.will_be_valid():
-            game_logic.game_board = prognosis.game_board
+        self.result.value = self.movement_prognosis.will_be_valid()
+
+        if self.result.value:
+            game_logic.game_board = self.movement_prognosis.game_board
             game_logic.game_state = GameStateWhiteTurn()

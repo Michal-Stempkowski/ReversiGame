@@ -1,6 +1,3 @@
-from copy import copy
-
-
 class MyMock(object):
     def __init__(self, another_mock=None):
         self.another_mock = another_mock
@@ -20,6 +17,10 @@ class InvalidMovementPrognosisMock(MyMock):
 
 
 class GameBoardWithNoValidMovementMock(MyMock):
+    def __init__(self, another_mock=None):
+        super().__init__(another_mock)
+        self.movement_prognosis_board = None
+
     # noinspection PyUnusedLocal
     @staticmethod
     def offer_piece(*args):
@@ -53,7 +54,8 @@ class GameBoardWithValidMovementMock(MyMock):
         self.movement_prognosis_board = None
 
     # noinspection PyUnusedLocal
-    def offer_piece(self, *args):
+    @staticmethod
+    def offer_piece(*args):
         prognosis = ValidMovementPrognosisMock(GameBoardWithValidMovementMock())
         prognosis.game_board.movement_prognosis_board = prognosis.game_board
         return prognosis
