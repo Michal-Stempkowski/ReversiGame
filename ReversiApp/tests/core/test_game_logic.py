@@ -1,9 +1,8 @@
 from unittest import TestCase
-from ReversiApp.core.game_board import WhitePiece, MovementPrognosis, BlackPiece
+from ReversiApp.core.game_board import NoPiece, WhitePiece
 
 from ReversiApp.core.game_logic import *
-from ReversiApp.mocks.core.mock_game_board import GameBoardWithNoValidMovementMock, \
-    GameBoardWithInsertUsageCounterMock
+from ReversiApp.mocks.core.mock_game_board import *
 
 
 class WhenCreatingGame(TestCase):
@@ -73,3 +72,11 @@ class WhenInBlackTurnState(TestCase):
         self.game_logic.perform_action(MakeBlackMoveAction(0, 0))
         self.assertEquals(0, self.game_logic.game_board.insert_usage_counter)
         self.assertEquals(GameStateBlackTurn(), self.game_logic.get_current_game_state())
+
+    def test_should_be_able_to_make_valid_move(self):
+        self.game_logic.game_board = GameBoardWithValidMovementMock()
+
+        self.assertIsNot(self.game_logic.game_board, self.game_logic.game_board.movement_prognosis_board)
+        self.game_logic.perform_action(MakeBlackMoveAction(0, 0))
+        self.assertIs(self.game_logic.game_board, self.game_logic.game_board.movement_prognosis_board)
+        self.assertEquals(GameStateWhiteTurn(), self.game_logic.get_current_game_state())

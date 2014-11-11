@@ -103,4 +103,7 @@ class MakeBlackMoveAction(Action):
 
     def __call__(self, game_logic):
         self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
-        game_logic.game_board.offer_piece()
+        prognosis = game_logic.game_board.offer_piece()
+        if prognosis.will_be_valid():
+            game_logic.game_board = prognosis.game_board
+            game_logic.game_state = GameStateWhiteTurn()
