@@ -1,14 +1,14 @@
-from ReversiApp.mocks.core.common_mock import MyMock
+from ReversiApp.mocks.core.common_mock import CompositeMock
 
 
-class InvalidMovementPrognosisMock(MyMock):
+class InvalidMovementPrognosisMock(CompositeMock):
     # noinspection PyUnusedLocal
     @staticmethod
     def will_be_valid(*args):
         return False
 
 
-class GameBoardWithNoValidMovementMock(MyMock):
+class GameBoardWithNoValidMovementMock(CompositeMock):
     def __init__(self, another_mock=None):
         super().__init__(another_mock)
         self.movement_prognosis_board = None
@@ -19,7 +19,7 @@ class GameBoardWithNoValidMovementMock(MyMock):
         return InvalidMovementPrognosisMock()
 
 
-class ValidMovementPrognosisMock(MyMock):
+class ValidMovementPrognosisMock(CompositeMock):
     def __init__(self, game_board, another_mock=None):
         super().__init__(another_mock)
         self.game_board = game_board
@@ -30,7 +30,7 @@ class ValidMovementPrognosisMock(MyMock):
         return True
 
 
-class GameBoardWithValidMovementMock(MyMock):
+class GameBoardWithValidMovementMock(CompositeMock):
     def __init__(self, another_mock=None):
         super().__init__(another_mock)
         self.movement_prognosis_board = None

@@ -71,19 +71,19 @@ class WhenInBlackOrWhiteTurnState(TestCase):
         self.game_logic.game_state = current_state
         self.assert_movement_prognosis_result(
             GameBoardWithNoValidMovementMock(),
-            MakeBlackMovementPrognosisAction(0, 0),
+            MakeOwnMovementPrognosisAction(0, 0),
             False)
         self.assert_movement_prognosis_result(
             GameBoardWithValidMovementMock(),
-            MakeBlackMovementPrognosisAction(0, 0),
+            MakeOwnMovementPrognosisAction(0, 0),
             True)
         self.assert_movement_prognosis_result(
             GameBoardWithNoValidMovementMock(),
-            MakeWhiteMovementPrognosisAction(0, 0),
+            MakeEnemyMovementPrognosisAction(0, 0),
             False)
         self.assert_movement_prognosis_result(
             GameBoardWithValidMovementMock(),
-            MakeWhiteMovementPrognosisAction(0, 0),
+            MakeEnemyMovementPrognosisAction(0, 0),
             True)
 
     def test_should_be_able_to_make_movement_prognosis(self):

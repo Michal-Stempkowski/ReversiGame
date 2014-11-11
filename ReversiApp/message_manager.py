@@ -5,3 +5,15 @@ class Message(object):
 
 class MoveWasNotPossibleMessage(Message):
     pass
+
+
+class MoveDoneMessage(Message):
+    pass
+
+
+class MovePassedMessage(Message):
+    pass
+
+
+class PlayerSurrenderedMessage(Message):
+    pass

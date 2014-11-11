@@ -1,4 +1,4 @@
-class MessageManagerMockWithMessageLog(object):
+class SystemMessageBusMockWithMessageLog(object):
     def __init__(self):
         self.called = []
 

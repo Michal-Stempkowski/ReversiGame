@@ -62,6 +62,10 @@ class GameStateBlackTurn(GameState):
     def my_victory_state():
         return GameStateBlackVictory()
 
+    @staticmethod
+    def get_current_player_color():
+        return BlackPiece()
+
 
 class GameStateWhiteTurn(GameState):
     def __init__(self):
@@ -74,6 +78,10 @@ class GameStateWhiteTurn(GameState):
     @staticmethod
     def my_victory_state():
         return GameStateWhiteVictory()
+
+    @staticmethod
+    def get_current_player_color():
+        return WhitePiece()
 
 
 class GameStateBlackVictory(GameState):
@@ -142,24 +150,22 @@ class InitializeAction(Action):
         game_logic.game_state = GameStateInitialized()
 
 
-class MakeWhiteMovementPrognosisAction(Action):
+class MakeOwnMovementPrognosisAction(Action):
     def __init__(self, row, column):
         super().__init__()
         self.row = row
         self.column = column
 
     def __call__(self, game_logic):
-        self.result.value = game_logic.game_board.offer_piece(self.row, self.column, WhitePiece())
+        self.result.value = game_logic.game_board.\
+            offer_piece(self.row, self.column, game_logic.get_current_game_state().get_current_player_color())
 
 
-class MakeBlackMovementPrognosisAction(Action):
-    def __init__(self, row, column):
-        super().__init__()
-        self.row = row
-        self.column = column
-
+class MakeEnemyMovementPrognosisAction(MakeOwnMovementPrognosisAction):
     def __call__(self, game_logic):
-        self.result.value = game_logic.game_board.offer_piece(self.row, self.column, BlackPiece())
+        self.result.value = game_logic.game_board.\
+            offer_piece(self.row, self.column,
+                        game_logic.get_current_game_state().get_current_player_color().get_enemy_color())
 
 
 class MakeMoveAction(Action):

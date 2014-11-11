@@ -1,4 +1,4 @@
-class MyMock(object):
+class CompositeMock(object):
     def __init__(self, another_mock=None):
         self.another_mock = another_mock
 
