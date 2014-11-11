@@ -52,20 +52,46 @@ class GameStateInitialized(GameState):
 
 class GameStateBlackTurn(GameState):
     def __init__(self):
-        super().__init__([GameStateWhiteTurn])
+        super().__init__([GameStateWhiteTurn, GameStateWhiteVictory])
 
     @staticmethod
     def next_player_state():
         return GameStateWhiteTurn()
 
+    @staticmethod
+    def my_victory_state():
+        return GameStateBlackVictory()
+
 
 class GameStateWhiteTurn(GameState):
     def __init__(self):
-        super().__init__([GameStateBlackTurn])
+        super().__init__([GameStateBlackTurn, GameStateBlackVictory])
 
     @staticmethod
     def next_player_state():
         return GameStateBlackTurn()
+
+    @staticmethod
+    def my_victory_state():
+        return GameStateWhiteVictory()
+
+
+class GameStateBlackVictory(GameState):
+    def __init__(self):
+        super().__init__([])
+
+    @staticmethod
+    def enemy_victory_state():
+        return GameStateWhiteVictory()
+
+
+class GameStateWhiteVictory(GameState):
+    def __init__(self):
+        super().__init__([])
+
+    @staticmethod
+    def enemy_victory_state():
+        return GameStateBlackVictory()
 
 
 class FutureResult(object):
@@ -152,4 +178,11 @@ class MakeMoveAction(Action):
 
 class PassAction(Action):
     def __call__(self, game_logic):
+        self.raise_if_state_unreachable(game_logic, game_logic.game_state.next_player_state())
         game_logic.game_state = game_logic.game_state.next_player_state()
+
+
+class SurrenderAction(Action):
+    def __call__(self, game_logic):
+        self.raise_if_state_unreachable(game_logic, game_logic.game_state.my_victory_state().enemy_victory_state())
+        game_logic.game_state = game_logic.game_state.my_victory_state().enemy_victory_state()

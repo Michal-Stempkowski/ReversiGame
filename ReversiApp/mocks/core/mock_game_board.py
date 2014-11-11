@@ -27,16 +27,6 @@ class GameBoardWithNoValidMovementMock(MyMock):
         return InvalidMovementPrognosisMock()
 
 
-class GameBoardWithInsertUsageCounterMock(MyMock):
-    def __init__(self, another_mock=None):
-        super().__init__(another_mock)
-        self.insert_usage_counter = 0
-
-    # noinspection PyUnusedLocal
-    def insert_piece(self, *args):
-        self.insert_usage_counter += 1
-
-
 class ValidMovementPrognosisMock(MyMock):
     def __init__(self, game_board, another_mock=None):
         super().__init__(another_mock)
