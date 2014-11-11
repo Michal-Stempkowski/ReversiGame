@@ -52,6 +52,11 @@ class GameStateInitialized(GameState):
 
 class GameStateBlackTurn(GameState):
     def __init__(self):
+        super().__init__([GameStateWhiteTurn])
+
+
+class GameStateWhiteTurn(GameState):
+    def __init__(self):
         super().__init__([])
 
 
@@ -80,3 +85,22 @@ class InitializeAction(Action):
         game_logic.game_board = GameBoard()
         game_logic.game_board.add_new_game_starting_pieces()
         game_logic.game_state = GameStateInitialized()
+
+
+class MakeWhiteMoveAction(Action):
+    def __init__(self, row, column):
+        self.row = row
+        self.column = column
+
+    def __call__(self, game_logic):
+        self.raise_if_state_unreachable(game_logic, GameStateBlackTurn())
+
+
+class MakeBlackMoveAction(Action):
+    def __init__(self, row, column):
+        self.row = row
+        self.column = column
+
+    def __call__(self, game_logic):
+        self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
+        game_logic.game_board.offer_piece()

@@ -62,7 +62,9 @@ class WhenMakingMovementPrognosis(TestCase):
 
     def insert_many_pieces(self, pieces):
         for (y, x, color) in pieces:
-            self.movement_prognosis.game_board.insert_piece(y, x, color)
+            self.game_board.insert_piece(y, x, color)
+
+        self.movement_prognosis = MovementPrognosis(self.game_board)
 
     def assert_neighbourhood_detected(self, expected, existing_enemies, row_of_new_piece, column_of_new_piece):
         self.insert_many_pieces(existing_enemies)
@@ -76,7 +78,7 @@ class WhenMakingMovementPrognosis(TestCase):
                                                                      neighbour[1] - column_of_new_piece)), expected)
 
         self.assertEquals(set(expected_with_directions), set(list_of_adjacent_enemies))
-        self.movement_prognosis.game_board.reset_board()
+        self.game_board.reset_board()
 
     def test_should_be_able_to_find_all_adjacent_enemies(self):
         self.assert_neighbourhood_detected([], [], 2, 2)
@@ -109,14 +111,12 @@ class WhenMakingMovementPrognosis(TestCase):
                                          list_of_coordinates((3, 2), (1, 0), 2), [(5, 2)])
 
     def assert_find_all_pieces_returns(self, expected, piece_to_be_inserted, pieces_before_movement):
-        self.movement_prognosis.game_board.reset_board()
+        self.game_board.reset_board()
 
         self.insert_many_pieces(pieces_before_movement)
         list_of_adjacent_enemies = self.movement_prognosis.find_all_adjacent_enemies(*piece_to_be_inserted)
         self.assertEquals(expected, set(self.movement_prognosis.find_all_pieces_to_be_converted(
             list_of_adjacent_enemies, piece_to_be_inserted[2])))
-
-        self.movement_prognosis.game_board.reset_board()
 
     def test_should_find_all_pieces_to_be_converted_in_all_directions(self):
         self.assert_find_all_pieces_returns(set(), (2, 2, BlackPiece()), [])
@@ -131,15 +131,16 @@ class WhenMakingMovementPrognosis(TestCase):
                                              (3, 2, WhitePiece())])
 
     def test_should_be_able_to_tell_if_movement_is_valid(self):
-        self.movement_prognosis.make_prognosis(2, 2, BlackPiece())
+        self.movement_prognosis = self.game_board.offer_piece(2, 2, BlackPiece())
         self.assertFalse(self.movement_prognosis.will_be_valid())
 
         self.insert_many_pieces([(2, 3, WhitePiece()), (2, 4, BlackPiece())])
-        self.movement_prognosis.make_prognosis(2, 2, BlackPiece())
+        self.movement_prognosis = self.game_board.offer_piece(2, 2, BlackPiece())
         self.assertTrue(self.movement_prognosis.will_be_valid())
 
     def test_should_update_prognosis_map_but_not_current_map(self):
-        self.insert_many_pieces([(2, 3, WhitePiece()), (2, 4, BlackPiece())])
+        self.movement_prognosis.game_board.insert_piece(2, 3, WhitePiece())
+        self.movement_prognosis.game_board.insert_piece(2, 4, BlackPiece())
         self.movement_prognosis.make_prognosis(2, 2, BlackPiece())
 
         self.assertTrue(self.movement_prognosis.game_board.get_piece_from_field(2, 3) == BlackPiece())
@@ -153,3 +154,12 @@ class WhenMakingMovementPrognosis(TestCase):
         self.movement_prognosis.make_prognosis(2, 2, BlackPiece())
 
         self.assertEquals(3, self.movement_prognosis.converted_pieces)
+
+    def test_should_not_let_to_make_move_on_other_than_no_piece_field(self):
+        self.game_board.reset_board()
+        self.insert_many_pieces([(0, 0, WhitePiece()), (0, 1, WhitePiece()), (0, 2, BlackPiece()),
+                                 (1, 0, WhitePiece()), (2, 0, BlackPiece())])
+
+        self.movement_prognosis.make_prognosis(0, 0, BlackPiece())
+
+        self.assertFalse(self.movement_prognosis.will_be_valid())

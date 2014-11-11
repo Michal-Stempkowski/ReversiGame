@@ -60,6 +60,7 @@ class GameBoard(object):
 
     def offer_piece(self, row, col, player_color):
         movement_prognosis = MovementPrognosis(self)
+        movement_prognosis.make_prognosis(row, col, player_color)
         return movement_prognosis
 
     def add_new_game_starting_pieces(self):
@@ -127,6 +128,9 @@ class MovementPrognosis(object):
             [])
 
     def make_prognosis(self, row, column, player_color):
+        if self.game_board.get_piece_from_field(row, column) != NoPiece():
+            return
+
         adjacent_enemies = self.find_all_adjacent_enemies(row, column, player_color)
         pieces_to_be_converted = self.find_all_pieces_to_be_converted(adjacent_enemies, player_color)
         for (y, x) in pieces_to_be_converted:

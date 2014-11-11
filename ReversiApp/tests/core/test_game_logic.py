@@ -1,7 +1,9 @@
 from unittest import TestCase
-from ReversiApp.core.game_board import WhitePiece, MovementPrognosis
+from ReversiApp.core.game_board import WhitePiece, MovementPrognosis, BlackPiece
 
 from ReversiApp.core.game_logic import *
+from ReversiApp.mocks.core.mock_game_board import GameBoardWithNoValidMovementMock, \
+    GameBoardWithInsertUsageCounterMock
 
 
 class WhenCreatingGame(TestCase):
@@ -53,38 +55,6 @@ class WhenInInitializedState(TestCase):
         self.assertEquals(GameStateBlackTurn(), self.game_logic.get_current_game_state())
 
 
-class InvalidMovementPrognosisMock(object):
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def will_be_valid(*args):
-        return False
-
-
-class GameBoardWithNoValidMovementMock():
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def offer_piece(*args):
-        return InvalidMovementPrognosisMock()
-
-
-class GameStateWhiteTurn(GameState):
-    def __init__(self):
-        super().__init__([])
-
-
-class MakeMoveAction(Action):
-    def __init__(self, player_color, row, column):
-        self.player_color = player_color
-        self.row = row
-        self.column = column
-
-    def __call__(self, game_logic):
-        prognosis = game_logic.game_board.offer_piece(self.row, self.column, self.player_color)
-
-        if prognosis.will_be_valid():
-            self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
-
-
 class WhenInBlackTurnState(TestCase):
     def setUp(self):
         self.game_logic = Game()
@@ -94,5 +64,12 @@ class WhenInBlackTurnState(TestCase):
     def test_should_not_be_able_to_make_white_move(self):
         self.game_logic.game_board = GameBoardWithNoValidMovementMock()
 
-        self.game_logic.perform_action(MakeMoveAction(WhitePiece(), 0, 0))
+        with self.assertRaises(UnreachableGameStateException):
+            self.game_logic.perform_action(MakeWhiteMoveAction(3, 5))
+
+    def test_should_not_be_able_to_make_invalid_move(self):
+        self.game_logic.game_board = GameBoardWithInsertUsageCounterMock(GameBoardWithNoValidMovementMock())
+
+        self.game_logic.perform_action(MakeBlackMoveAction(0, 0))
+        self.assertEquals(0, self.game_logic.game_board.insert_usage_counter)
         self.assertEquals(GameStateBlackTurn(), self.game_logic.get_current_game_state())
