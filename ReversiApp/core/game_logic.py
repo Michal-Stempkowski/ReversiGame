@@ -54,10 +54,18 @@ class GameStateBlackTurn(GameState):
     def __init__(self):
         super().__init__([GameStateWhiteTurn])
 
+    @staticmethod
+    def next_player_state():
+        return GameStateWhiteTurn()
+
 
 class GameStateWhiteTurn(GameState):
     def __init__(self):
-        super().__init__([])
+        super().__init__([GameStateBlackTurn])
+
+    @staticmethod
+    def next_player_state():
+        return GameStateBlackTurn()
 
 
 class FutureResult(object):
@@ -115,7 +123,6 @@ class MakeWhiteMovementPrognosisAction(Action):
         self.column = column
 
     def __call__(self, game_logic):
-        # self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
         self.result.value = game_logic.game_board.offer_piece(self.row, self.column, WhitePiece())
 
 
@@ -126,28 +133,23 @@ class MakeBlackMovementPrognosisAction(Action):
         self.column = column
 
     def __call__(self, game_logic):
-        # self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
         self.result.value = game_logic.game_board.offer_piece(self.row, self.column, BlackPiece())
 
 
-class MakeWhiteMoveAction(Action):
+class MakeMoveAction(Action):
     def __init__(self, movement_prognosis):
         super().__init__()
         self.movement_prognosis = movement_prognosis
 
     def __call__(self, game_logic):
-        self.raise_if_state_unreachable(game_logic, GameStateBlackTurn())
-
-
-class MakeBlackMoveAction(Action):
-    def __init__(self, movement_prognosis):
-        super().__init__()
-        self.movement_prognosis = movement_prognosis
-
-    def __call__(self, game_logic):
-        self.raise_if_state_unreachable(game_logic, GameStateWhiteTurn())
+        self.raise_if_state_unreachable(game_logic, game_logic.game_state.next_player_state())
         self.result.value = self.movement_prognosis.will_be_valid()
 
         if self.result.value:
             game_logic.game_board = self.movement_prognosis.game_board
-            game_logic.game_state = GameStateWhiteTurn()
+            game_logic.game_state = game_logic.game_state.next_player_state()
+
+
+class PassAction(Action):
+    def __call__(self, game_logic):
+        game_logic.game_state = game_logic.game_state.next_player_state()
