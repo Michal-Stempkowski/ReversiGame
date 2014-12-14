@@ -1,0 +1,37 @@
+<form action="creation_result/" method="post">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <td align="right">
+                <label for="game_name">Game name (optional)</label>
+            </td>
+            <td>
+                <input type="text" name="game_name" id="game_name"/>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">
+                <label for="is_player_1_AI">Is player 1 AI?</label>
+            </td>
+            <td>
+                <input type="checkbox" name="is_player_1_AI" id="is_player_1_AI"/>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">
+                <label for="is_player_2_AI">Is player 2 AI?</label>
+            </td>
+            <td>
+                <input type="checkbox" name="is_player_2_AI" id="is_player_2_AI"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+
+            </td>
+            <td>
+                <button type="submit">Create new game</button>
+            </td>
+        </tr>
+    </table>
+</form>
