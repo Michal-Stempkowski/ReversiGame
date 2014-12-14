@@ -13,11 +13,13 @@ class WhenCreatingGameBoard(TestCase):
         self.board_size = self.game_board.board_size() * self.game_board.board_size()
 
     def test_newly_created_board_should_have_64_empty_fields(self):
-        self.assertEquals(self.board_size, self.game_board.count_empty_fields())
+        self.assertEquals(64, self.game_board.count_empty_fields())
 
     def test_when_calling_reset__board_should_be_emptied(self):
         self.game_board.insert_piece(0, 0, WhitePiece())
         self.game_board.insert_piece(4, 4, BlackPiece())
+
+        self.assertEquals(self.board_size - 2, self.game_board.count_empty_fields())
 
         self.game_board.reset_board()
 
