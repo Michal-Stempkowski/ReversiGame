@@ -27,6 +27,9 @@ class GameState(object):
     def __eq__(self, other):
         return self.__class__ is other.__class__
 
+    def __hash__(self):
+        return self.name().__hash__()
+
     @classmethod
     def name(cls):
         return cls.__name__

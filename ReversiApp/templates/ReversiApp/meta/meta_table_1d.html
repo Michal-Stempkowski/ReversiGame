@@ -1,0 +1,17 @@
+<table>
+    {% block meta_table %}
+        {% for row in table %}
+            <tr>
+                {% block meta_row %}
+                    <td>
+                        {% block meta_cell_value %}
+                            {{ row }}
+                        {% endblock %}
+                    </td>
+
+                {% endblock %}
+            </tr>
+        {% endfor %}
+
+    {% endblock %}
+</table>

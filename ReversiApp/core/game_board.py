@@ -10,6 +10,9 @@ class Piece(object):
     def __repr__(self):
         return self.__class__.__name__
 
+    def __hash__(self):
+        return self.__class__.__name__.__hash__()
+
 
 class NoPiece(Piece):
     pass

@@ -1,4 +1,11 @@
-<ul>
-    <li><a href="/game/new/">New Game</a></li>
-{#    <li><a href="/game/load/">Load Game</a></li>#}
-</ul>
+{% extends "ReversiApp/base_site.html" %}
+
+{% block body %}
+    {{ block.super }}
+
+    <ul>
+        <li><a href="/game/new/">New Game</a></li>
+    {#    <li><a href="/game/load/">Load Game</a></li>#}
+    </ul>
+
+{% endblock %}
