@@ -4,6 +4,7 @@ from ReversiApp.core.game_container import GameContainer
 from ReversiApp.core.game_logic import InitializeAction, UnreachableGameStateException
 from ReversiApp.mocks.system_mocks import SystemMessageBusMockWithMessageLog
 # from ReversiApp.models import Question
+from ReversiApp.models import GameBoardRecord
 
 
 def index(request):
@@ -40,3 +41,7 @@ def new_game_creation_result(request):
         return render(request, 'ReversiApp/new/creation_result__initialization_has_failed.html', {})
 
     return render(request, 'ReversiApp/new/creation_result__OK.html', {})
+
+
+def load_game(request):
+    return render(request, 'ReversiApp/meta/meta_table_1d.html', {'table' : GameBoardRecord.objects})
