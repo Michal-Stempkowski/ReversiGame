@@ -44,4 +44,4 @@ def new_game_creation_result(request):
 
 
 def load_game(request):
-    return render(request, 'ReversiApp/meta/meta_table_1d.html', {'table' : GameBoardRecord.objects})
+    return render(request, 'ReversiApp/meta/meta_table_1d.html', {'meta_table' : GameBoardRecord.objects.all()})

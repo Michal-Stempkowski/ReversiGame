@@ -33,13 +33,20 @@ class OutOfBoardPiece(Piece):
 
 
 class GameBoard(object):
-    def __init__(self):
-        self.fields = None
-        self.reset_board()
+    def __init__(self, fields=None):
+        self.fields = fields
+        if fields is None:
+            self.reset_board()
 
     @staticmethod
     def board_size():
         return 8
+
+    def __repr__(self):
+        show = lambda piece: 'O' if piece == WhitePiece() else ('X' if piece == BlackPiece() else ' ')
+        append_row = lambda row: reduce(lambda line, cell: line + show(cell), row, '')
+
+        return reduce(lambda result, row: result + append_row(row) + '\n', self.fields, '')
 
     def reset_board(self):
         self.fields = [[NoPiece() for _ in range(self.board_size())] for _ in range(self.board_size())]
@@ -83,6 +90,8 @@ class MovementPrognosis(object):
     def __init__(self, game_board):
         self.converted_pieces = 0
         self.game_board = deepcopy(game_board)
+        self.row = None
+        self.col = None
 
     @staticmethod
     def all_possible_directions():
@@ -141,3 +150,8 @@ class MovementPrognosis(object):
 
         self.converted_pieces = len(pieces_to_be_converted)
         self.game_board.insert_piece(row, column, player_color)
+        self.row = row
+        self.col = column
+
+    def next_movement_prognosis(self, row, column, player_color):
+        return self.game_board.offer_piece(row, column, player_color.get_enemy_color())
