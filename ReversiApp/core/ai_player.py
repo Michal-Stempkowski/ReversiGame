@@ -1,6 +1,7 @@
 from _collections_abc import Iterable
 from functools import reduce
 from ReversiApp.core.game_board import MovementPrognosis, GameBoard
+from ReversiApp.core.game_logic import PassAction, MakeMoveAction
 
 infinity = 1.0e400
 
@@ -23,7 +24,8 @@ class AiParams(object):
         self.make_result = make_result or (lambda points, prognosis: (points, prognosis))
         self.max_depth = max_depth
         self.is_terminal_state = is_terminal_state or (lambda state: None)
-        self._eval_functions = eval_functions or AiParams.Evaluation.pack(AiParams.Evaluation.my_piece_count(1))
+        # self._eval_functions = None
+        self._eval_functions = eval_functions or [AiParams.Evaluation.my_piece_count(1)]
 
     @property
     def eval_function(self):
@@ -32,8 +34,9 @@ class AiParams(object):
     @eval_function.setter
     def eval_function(self, value):
         if not isinstance(value, Iterable):
-            value = [value]
-        self._eval_functions = value
+            self._eval_functions = [value]
+        else:
+            self._eval_functions = value
 
     class Evaluation(object):
         @staticmethod
@@ -47,7 +50,7 @@ class AiParams(object):
         @staticmethod
         def my_piece_count(mult):
             return lambda row_index, col_index, board, my_color: \
-                mult if board[row_index][col_index] == my_color else 0
+                mult if board.game_board.fields[row_index][col_index] == my_color else 0
 
 
 class AiPlayer(object):
@@ -60,7 +63,7 @@ class AiPlayer(object):
         return ((self.ai_params.eval_function(state, self.player_color), state) for state in states)
 
     def find_all_possible_moves(self, prognosis):
-        all_moves = (prognosis.game_board.offer_piece(row, col, self.player_color.get_enemy_color())
+        all_moves = (prognosis.game_board.offer_piece(row, col, self.player_color)
                      for row in range(prognosis.game_board.board_size())
                      for col in range(prognosis.game_board.board_size()))
 
@@ -101,13 +104,15 @@ class AiPlayer(object):
         return best
 
     def alpha_beta(self):
-        available_moves = self.find_all_possible_moves(MovementPrognosis(self.game))
+        available_moves = self.find_all_possible_moves(MovementPrognosis(self.game.game_board))
 
         return AiPlayer.argmax(available_moves,
                                lambda arg: self.min_value(arg, -infinity, infinity, self.ai_params.max_depth))
 
     @staticmethod
     def argmin(seq, fn):
+        if not seq:
+            return None
         best = seq[0]
         best_score = fn(best)
         for x in seq:
@@ -119,3 +124,15 @@ class AiPlayer(object):
     @staticmethod
     def argmax(seq, fn):
         return AiPlayer.argmin(seq, lambda x: -(fn(x)))
+
+    def make_turn(self, messagge_provider):
+        print(self.game.game_board)
+        print(messagge_provider.player_movement_message(self.game.game_state.get_current_player_color()))
+
+        best_movement = self.alpha_beta()
+
+        if not best_movement:
+            self.game.perform_action(PassAction())
+
+        self.game.perform_action(MakeMoveAction(best_movement[1]))
+        print(messagge_provider.prompt, best_movement[1].row, best_movement[1].col)

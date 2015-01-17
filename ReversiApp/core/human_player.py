@@ -8,12 +8,16 @@ class HumanPlayer(object):
         self.game = game
 
     def make_move(self, row, column):
-        prognosis = self.game.perform_action(MakeOwnMovementPrognosisAction(row, column))
-        action = MakeMoveAction(prognosis)
-        self.game.perform_action(action)
+        prognosis_action = MakeOwnMovementPrognosisAction(row, column)
+        self.game.perform_action(prognosis_action)
+        prognosis = prognosis_action.result.value
 
-        message = MoveDoneMessage() if action.result else MoveWasNotPossibleMessage()
+        movement_action = MakeMoveAction(prognosis)
+        self.game.perform_action(movement_action)
+
+        message = MoveDoneMessage() if movement_action.result else MoveWasNotPossibleMessage()
         self.message_bus.dispatch_message(message)
+        return movement_action.result.value
 
     def pass_move(self):
         self.game.perform_action(PassAction())
@@ -22,3 +26,26 @@ class HumanPlayer(object):
     def surrender(self):
         self.game.perform_action(SurrenderAction())
         self.message_bus.dispatch_message(PlayerSurrenderedMessage())
+
+    def make_turn(self, messagge_provider):
+        print(self.game.game_board)
+        print(messagge_provider.player_movement_message(self.game.game_state.get_current_player_color()))
+        print(messagge_provider.human_player_movement_message)
+        command = input(messagge_provider.prompt)
+
+        try:
+            if command == 'surrender':
+                print(messagge_provider.player_surrendered)
+                self.surrender()
+                return
+            elif command == 'pass':
+                print(messagge_provider.player_passed)
+                self.pass_move()
+                return
+            else:
+                row, col = map(int, command.split())
+        except Exception:
+            print(messagge_provider.invalid_command, repr(command))
+            return
+
+        self.make_move(row, col)

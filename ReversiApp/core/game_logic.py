@@ -1,4 +1,5 @@
-from ReversiApp.core.game_board import GameBoard, BlackPiece, WhitePiece
+from functools import reduce
+from ReversiApp.core.game_board import *
 
 
 class Game(object):
@@ -11,6 +12,12 @@ class Game(object):
 
     def perform_action(self, action):
         action(self)
+
+    def is_in_terminal_state(self):
+        return self.game_state.is_terminal()
+
+    def is_in_transient_state(self):
+        return self.game_state.is_transient()
 
 
 class UnreachableGameStateException(Exception):
@@ -37,10 +44,24 @@ class GameState(object):
     def is_state_reachable(self, state):
         return state.name() in self.reachable_states
 
+    def is_terminal(self):
+        return len(self.reachable_states) == 0
+
+    def is_transient(self):
+        return False
+
+    def announce_winner(self, game_board):
+        if not game_board.is_movement_possible(self.get_current_player_color()):
+            black, white = game_board.count_pieces(BlackPiece()), game_board.count_pieces(WhitePiece())
+            return GameStateBlackVictory() if black > white else (GameStateWhiteVictory() if white > black else NoPiece())
+
 
 class GameStateNew(GameState):
     def __init__(self):
         super().__init__([GameStateDead, GameStateInitialized])
+
+    def is_transient(self):
+        return True
 
 
 class GameStateDead(GameState):
@@ -52,10 +73,13 @@ class GameStateInitialized(GameState):
     def __init__(self):
         super().__init__([GameStateBlackTurn])
 
+    def is_transient(self):
+        return True
+
 
 class GameStateBlackTurn(GameState):
     def __init__(self):
-        super().__init__([GameStateWhiteTurn, GameStateWhiteVictory])
+        super().__init__([GameStateWhiteTurn, GameStateWhiteVictory, GameStateBlackVictory, GameStateDraw])
 
     @staticmethod
     def next_player_state():
@@ -72,7 +96,7 @@ class GameStateBlackTurn(GameState):
 
 class GameStateWhiteTurn(GameState):
     def __init__(self):
-        super().__init__([GameStateBlackTurn, GameStateBlackVictory])
+        super().__init__([GameStateBlackTurn, GameStateBlackVictory, GameStateWhiteVictory, GameStateDraw])
 
     @staticmethod
     def next_player_state():
@@ -95,6 +119,9 @@ class GameStateBlackVictory(GameState):
     def enemy_victory_state():
         return GameStateWhiteVictory()
 
+    def is_transient(self):
+        return True
+
 
 class GameStateWhiteVictory(GameState):
     def __init__(self):
@@ -103,6 +130,17 @@ class GameStateWhiteVictory(GameState):
     @staticmethod
     def enemy_victory_state():
         return GameStateBlackVictory()
+
+    def is_transient(self):
+        return True
+
+
+class GameStateDraw(GameState):
+    def __init__(self):
+        super().__init__([])
+
+    def is_transient(self):
+        return True
 
 
 class FutureResult(object):
@@ -178,11 +216,18 @@ class MakeMoveAction(Action):
 
     def __call__(self, game_logic):
         self.raise_if_state_unreachable(game_logic, game_logic.game_state.next_player_state())
+        self.raise_if_state_unreachable(game_logic, game_logic.game_state.my_victory_state())
+        self.raise_if_state_unreachable(game_logic, game_logic.game_state.my_victory_state().enemy_victory_state())
+        self.raise_if_state_unreachable(game_logic, GameStateDraw())
+
         self.result.value = self.movement_prognosis.will_be_valid()
 
         if self.result.value:
             game_logic.game_board = self.movement_prognosis.game_board
-            game_logic.game_state = game_logic.game_state.next_player_state()
+            if game_logic.game_board.is_movement_possible(game_logic.game_state.get_current_player_color()):
+                game_logic.game_state = game_logic.game_state.next_player_state()
+            else:
+                game_logic.game_state = game_logic.game_state.announce_winner(game_logic.game_board)
 
 
 class PassAction(Action):

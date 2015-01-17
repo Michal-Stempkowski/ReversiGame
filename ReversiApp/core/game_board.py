@@ -43,7 +43,7 @@ class GameBoard(object):
         return 8
 
     def __repr__(self):
-        show = lambda piece: 'O' if piece == WhitePiece() else ('X' if piece == BlackPiece() else ' ')
+        show = lambda piece: 'B' if piece == WhitePiece() else ('C' if piece == BlackPiece() else '.')
         append_row = lambda row: reduce(lambda line, cell: line + show(cell), row, '')
 
         return reduce(lambda result, row: result + append_row(row) + '\n', self.fields, '')
@@ -65,6 +65,9 @@ class GameBoard(object):
     def count_empty_fields(self):
         return sum(self.count_fields_in_row(NoPiece(), row) for row in self.fields)
 
+    def count_pieces(self, piece):
+        return sum(self.count_fields_in_row(piece, row) for row in self.fields)
+
     def insert_piece(self, row, col, piece):
         self.fields[row][col] = piece
 
@@ -84,6 +87,14 @@ class GameBoard(object):
             return OutOfBoardPiece()
         else:
             return self.fields[row][col]
+
+    def is_movement_possible(self, color):
+        safety_boundary = self.board_size() * self.board_size() // 4
+        return True if self.count_empty_fields() > safety_boundary else \
+            any((self.offer_piece(row, col, color)
+                     .will_be_valid()
+                 for col in range(self.board_size())
+                 for row in range(self.board_size())))
 
 
 class MovementPrognosis(object):
