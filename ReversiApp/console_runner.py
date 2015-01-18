@@ -20,6 +20,11 @@ class MessageProvider(object):
         self.black_player_name = 'Black'
         self.white_player_name = 'White'
         self.human_player_movement_message = 'Please enter coordinates (example movements: "0 5", "pass", "surrender"'
+        self.game_has_ended_message = 'Game has ended!'
+        self.points_message = '{} has earned {} points.'
+
+        self.surrender_command = 'surrender'
+        self.pass_command = 'pass'
 
     def player_movement_message(self, color):
         return '{} player move:'.format(self.black_player_name if color == BlackPiece() else self.white_player_name)
@@ -33,7 +38,27 @@ class MainConsole(object):
         self.message_manager = SystemMessageBusMockWithMessageLog()
         self.player_modes = {
             'human': lambda game, message_manager, color: HumanPlayer(game, message_manager),
-            'ai': lambda game, message_manager, color: AiPlayer(game, AiParams(), color)
+            'ai': lambda game, message_manager, color: AiPlayer(game, AiParams(), color),
+            'ai_corners_3': lambda game, message_manager, color: AiPlayer(game, AiParams(eval_functions=[
+                AiParams.Evaluation.my_piece_count(10),
+                AiParams.Evaluation.corners_are_better(3)]), color),
+            'ai_corners_1': lambda game, message_manager, color: AiPlayer(game, AiParams(eval_functions=[
+                AiParams.Evaluation.my_piece_count(10),
+                AiParams.Evaluation.corners_are_better(1)]), color),
+            'ai_middle_3': lambda game, message_manager, color: AiPlayer(game, AiParams(eval_functions=[
+                AiParams.Evaluation.my_piece_count(10),
+                AiParams.Evaluation.middle_is_better(3)]), color),
+            'ai_middle_1': lambda game, message_manager, color: AiPlayer(game, AiParams(eval_functions=[
+                AiParams.Evaluation.my_piece_count(10),
+                AiParams.Evaluation.middle_is_better(1)]), color),
+            'ai_corners_2_middle_1': lambda game, message_manager, color: AiPlayer(game, AiParams(eval_functions=[
+                AiParams.Evaluation.my_piece_count(10),
+                AiParams.Evaluation.corners_are_better(2),
+                AiParams.Evaluation.middle_is_better(1)]), color),
+            'ai_corners_1_middle_2': lambda game, message_manager, color: AiPlayer(game, AiParams(eval_functions=[
+                AiParams.Evaluation.my_piece_count(10),
+                AiParams.Evaluation.corners_are_better(1),
+                AiParams.Evaluation.middle_is_better(2)]), color)
         }
 
         self.message_provider = message_provider
@@ -54,6 +79,12 @@ class MainConsole(object):
     def start_game(self):
         self.game.perform_action(BlackTurnAction())
 
+    def show_score(self):
+        black, white = self.game.game_board.count_pieces(BlackPiece()), self.game.game_board.count_pieces(WhitePiece())
+
+        print(self.message_provider.points_message.format(self.message_provider.player_name(BlackPiece()), black))
+        print(self.message_provider.points_message.format(self.message_provider.player_name(WhitePiece()), white))
+
     def main(self):
         player1_creator = self.read_player_mode(1)
         player2_creator = self.read_player_mode(2)
@@ -68,7 +99,11 @@ class MainConsole(object):
         while not self.game.is_in_transient_state():
             current_color = self.game.game_state.get_current_player_color()
             player_getter(current_color).make_turn(self.message_provider)
+            self.show_score()
 
+        print(self.message_provider.game_has_ended_message)
+        print(self.game.game_board)
+        self.show_score()
 
 if __name__ == '__main__':
     MainConsole(MessageProvider()).main()

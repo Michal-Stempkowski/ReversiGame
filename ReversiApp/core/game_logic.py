@@ -53,7 +53,10 @@ class GameState(object):
     def announce_winner(self, game_board):
         if not game_board.is_movement_possible(self.get_current_player_color()):
             black, white = game_board.count_pieces(BlackPiece()), game_board.count_pieces(WhitePiece())
-            return GameStateBlackVictory() if black > white else (GameStateWhiteVictory() if white > black else NoPiece())
+            return \
+                GameStateBlackVictory() if black > white \
+                else (GameStateWhiteVictory() if white > black
+                      else GameStateDraw())
 
 
 class GameStateNew(GameState):

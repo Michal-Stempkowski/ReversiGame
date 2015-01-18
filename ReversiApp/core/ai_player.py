@@ -1,5 +1,6 @@
 from _collections_abc import Iterable
 from functools import reduce
+from builtins import abs
 from ReversiApp.core.game_board import MovementPrognosis, GameBoard
 from ReversiApp.core.game_logic import PassAction, MakeMoveAction
 
@@ -24,7 +25,6 @@ class AiParams(object):
         self.make_result = make_result or (lambda points, prognosis: (points, prognosis))
         self.max_depth = max_depth
         self.is_terminal_state = is_terminal_state or (lambda state: None)
-        # self._eval_functions = None
         self._eval_functions = eval_functions or [AiParams.Evaluation.my_piece_count(1)]
 
     @property
@@ -43,14 +43,32 @@ class AiParams(object):
         def pack(functions):
             return lambda state, color: \
                 sum((func(i, j, state, color)
-                    for i in range(state.game_board.board_size())
-                    for j in range(state.game_board.board_size())
-                    for func in functions))
+                     for i in range(state.game_board.board_size())
+                     for j in range(state.game_board.board_size())
+                     for func in functions))
 
         @staticmethod
         def my_piece_count(mult):
             return lambda row_index, col_index, board, my_color: \
                 mult if board.game_board.fields[row_index][col_index] == my_color else 0
+
+        @staticmethod
+        def corners_are_better(mult):
+            return lambda row_index, col_index, board, my_color: \
+                mult * \
+                abs((row_index - board.game_board.board_size() // 2) *
+                    abs(col_index - board.game_board.board_size() // 2)) \
+                if board.game_board.fields[row_index][col_index] == my_color \
+                else 0
+
+        @staticmethod
+        def middle_is_better(mult):
+            return lambda row_index, col_index, board, my_color: \
+                mult * (board.game_board.board_size() * board.game_board.board_size() // 4 -
+                abs((row_index - board.game_board.board_size() // 2) *
+                    abs(col_index - board.game_board.board_size() // 2))) \
+                if board.game_board.fields[row_index][col_index] == my_color \
+                else 0
 
 
 class AiPlayer(object):
@@ -94,7 +112,8 @@ class AiPlayer(object):
 
         best = None
         for child in children:
-            best = min(best, self.max_value(child.game_board, alpha, beta, depth + 1), lambda x: x[0] if best else infinity)
+            best = min(best, self.max_value(child.game_board, alpha, beta, depth + 1),
+                       lambda x: x[0] if best else infinity)
 
             if best <= alpha:
                 return best
@@ -133,6 +152,7 @@ class AiPlayer(object):
 
         if not best_movement:
             self.game.perform_action(PassAction())
-
-        self.game.perform_action(MakeMoveAction(best_movement[1]))
-        print(messagge_provider.prompt, best_movement[1].row, best_movement[1].col)
+            print(messagge_provider.prompt, messagge_provider.pass_command)
+        else:
+            self.game.perform_action(MakeMoveAction(best_movement[1]))
+            print(messagge_provider.prompt, best_movement[1].row, best_movement[1].col)

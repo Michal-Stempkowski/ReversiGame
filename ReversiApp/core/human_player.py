@@ -34,11 +34,11 @@ class HumanPlayer(object):
         command = input(messagge_provider.prompt)
 
         try:
-            if command == 'surrender':
+            if command == messagge_provider.surrender_command:
                 print(messagge_provider.player_surrendered)
                 self.surrender()
                 return
-            elif command == 'pass':
+            elif command == messagge_provider.pass_command:
                 print(messagge_provider.player_passed)
                 self.pass_move()
                 return
