@@ -41,3 +41,7 @@ class GameBoardWithValidMovementMock(CompositeMock):
         prognosis = ValidMovementPrognosisMock(GameBoardWithValidMovementMock())
         prognosis.game_board.movement_prognosis_board = prognosis.game_board
         return prognosis
+
+    @staticmethod
+    def is_movement_possible(*args):
+        return True

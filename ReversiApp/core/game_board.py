@@ -43,10 +43,14 @@ class GameBoard(object):
         return 8
 
     def __repr__(self):
-        show = lambda piece: 'B' if piece == WhitePiece() else ('C' if piece == BlackPiece() else '.')
+        show = lambda piece: 'W' if piece == WhitePiece() else ('B' if piece == BlackPiece() else '.')
         append_row = lambda row: reduce(lambda line, cell: line + show(cell), row, '')
 
-        return reduce(lambda result, row: result + append_row(row) + '\n', self.fields, '')
+        first_line = reduce(lambda line, num: line + str(num), (x for x in range(self.board_size())), 'X|') + '\n'
+        # second_line = reduce(lambda line, num: line + '_', range(self.board_size() + 2), '') + '\n'
+        return first_line +  \
+            reduce(lambda result, row_num: result + str(row_num) + '|' + append_row(self.fields[row_num]) + '\n',
+                   range(self.board_size()), '')
 
     def reset_board(self):
         self.fields = [[NoPiece() for _ in range(self.board_size())] for _ in range(self.board_size())]
